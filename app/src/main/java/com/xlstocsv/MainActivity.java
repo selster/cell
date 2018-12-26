@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private int counter = 0;
     public static String PACKAGE_NAME;
     //Path that will open the file picker from. If it doesnt exist, it will crash
-    private String excelFolderPath = "/storage/emulated/0/notif/excel";
+    private String excelFolderPath = "//storage//emulated//0//Notification History Log//Excel";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
