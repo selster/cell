@@ -1,3 +1,4 @@
+// 52 hsd the path for where the excel file is
 package com.xlstocsv;
 // importing packages
 import android.Manifest;
@@ -58,7 +59,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         PACKAGE_NAME = getApplicationContext().getPackageName();
         initwidgets();
+        /// you can insert a differen package sql manager here
+        // if I own the sqlmanager app
+        // listener to receive db
+        // then you send the db from your app to sqlmanager app
 
+        // the following wi9ll lauch the sql manager gui
+        //Intent launchIntent = getPackageManager().getLaunchIntentForPackage("dk.andsen.asqlitemanager");
+        //if (launchIntent != null) {
+        //    startActivity(launchIntent);//null pointer check in case package name was not found
+        //}
     }
 
     private void initwidgets() {
