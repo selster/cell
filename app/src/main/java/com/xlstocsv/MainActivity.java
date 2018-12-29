@@ -38,12 +38,17 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.xlstocsv.utils.DatabaseHandler.DATABASE_FOLDER;
+import static com.xlstocsv.utils.DatabaseHandler.getMyDatabaseName;
+
 
 // what the android is going to start with
 public class MainActivity extends AppCompatActivity {
     // defining variables
     private static final int PICKFILE_REQUEST_CODE = 1; //
     private Button pickFile; // here is the famous button
+    private Button btnShareFile; // here is the famous button
+
     private ArrayList<String> columnNames = new ArrayList<>();
     private ArrayList<String> values = new ArrayList<>();
     Context context;
@@ -74,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private void initwidgets() {
         context = this;
         pickFile = (Button) findViewById(R.id.pickFile_Button);
+        btnShareFile = findViewById(R.id.btnShareFile);
 
         pickFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,8 +87,21 @@ public class MainActivity extends AppCompatActivity {
                 requestPermission();
             }
         });
+
+        btnShareFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                shareFile();
+            }
+        });
     }
 
+    private void shareFile() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage("com.abdu.mysqlmanager");
+        intent.putExtra("db", "file://" + DATABASE_FOLDER + getMyDatabaseName());
+       // intent.putExtra("db", "file://" + "//storage//emulated//0//GBWhatsApp//Backup//databases//wa.db");
+        startActivityForResult(intent, 1);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

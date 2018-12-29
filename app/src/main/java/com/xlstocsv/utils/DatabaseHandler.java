@@ -40,7 +40,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private String databasePath = "";
     //    private static final String DATABASE_PATH = Environment.getExternalStorageDirectory().getPath()
 //            + File.separator + "NotificationHistory/0/6/log/excel/" + DATABASE_NAME;
-    private static final String DATABASE_FOLDER = Environment.getExternalStorageDirectory().getPath()
+    public static final String DATABASE_FOLDER = Environment.getExternalStorageDirectory().getPath()
             // xls files are written to here
             // /storage/emulated/0/Notification History0/1Log/Excel
             + File.separator + "NotificationHistory/0/6/log/excel/";  // looks up excel files?
@@ -60,7 +60,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.d("Test", my_db);
     }
 
-    private static String getMyDatabaseName() {
+    public static String getMyDatabaseName() {
         Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         String month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
