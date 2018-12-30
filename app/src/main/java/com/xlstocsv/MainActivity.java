@@ -97,8 +97,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void shareFile() {
-        Intent intent = getPackageManager().getLaunchIntentForPackage("com.abdu.mysqlmanager");
-        intent.putExtra("db", "file://" + DATABASE_FOLDER + getMyDatabaseName());
+        //Intent intent = getPackageManager().getLaunchIntentForPackage("com.abdu.mysqlmanager");
+        Intent intent = getPackageManager().getLaunchIntentForPackage("dk.andsen.asqlitemanager");
+        //intent.putExtra("db", "file://" + DATABASE_FOLDER + getMyDatabaseName());
+        intent.putExtra("database", DATABASE_FOLDER + getMyDatabaseName());
        // intent.putExtra("db", "file://" + "//storage//emulated//0//GBWhatsApp//Backup//databases//wa.db");
         startActivityForResult(intent, 1);
     }
