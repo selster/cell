@@ -1,14 +1,14 @@
-// 52 hsd the path for where the excel file is
 package com.xlstocsv;
-// importing packages
+
 import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -31,10 +31,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,8 +47,8 @@ public class MainActivity extends AppCompatActivity {
     // defining variables
     private static final int PICKFILE_REQUEST_CODE = 1; //
     private Button pickFile; // here is the famous button
-    private Button btnShareFile; // here is the famous button
-
+    private Button btnShareFile;
+    private Button btnCopySQLQueryFile;
     private ArrayList<String> columnNames = new ArrayList<>();
     private ArrayList<String> values = new ArrayList<>();
     Context context;
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     public static String PACKAGE_NAME;
     //Path that will open the file picker from. If it doesnt exist, it will crash
     private String excelFolderPath = "//storage//emulated//0//Notification History Log//Excel";
+    private String FilePath = "//storage//emulated//0//Download";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,22 +65,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         PACKAGE_NAME = getApplicationContext().getPackageName();
         initwidgets();
-        /// you can insert a differen package sql manager here
-        // if I own the sqlmanager app
-        // listener to receive db
-        // then you send the db from your app to sqlmanager app
 
-        // the following wi9ll lauch the sql manager gui
-        //Intent launchIntent = getPackageManager().getLaunchIntentForPackage("dk.andsen.asqlitemanager");
-        //if (launchIntent != null) {
-        //    startActivity(launchIntent);//null pointer check in case package name was not found
-        //}
     }
 
     private void initwidgets() {
         context = this;
-        pickFile = (Button) findViewById(R.id.pickFile_Button);
+        pickFile = findViewById(R.id.pickFile_Button);
         btnShareFile = findViewById(R.id.btnShareFile);
+        btnCopySQLQueryFile = findViewById(R.id.btnCopySQLQueryFile);
 
         pickFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,16 +87,47 @@ public class MainActivity extends AppCompatActivity {
                 shareFile();
             }
         });
+
+        btnCopySQLQueryFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                requestPermissionForSQLFile();
+            }
+        });
+    }
+
+    private void copySQLQueryFile(File file) {
+        //Read text from file
+        StringBuilder text = new StringBuilder();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+            br.close();
+        } catch (IOException e) {
+            //You'll need to add proper error handling here
+        }
+
+        //copy text to clipboard
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("label", text.toString());
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(this, "Text copied", Toast.LENGTH_SHORT).show();
     }
 
     private void shareFile() {
-        //Intent intent = getPackageManager().getLaunchIntentForPackage("com.abdu.mysqlmanager");
         Intent intent = getPackageManager().getLaunchIntentForPackage("dk.andsen.asqlitemanager");
-        //intent.putExtra("db", "file://" + DATABASE_FOLDER + getMyDatabaseName());
         intent.putExtra("database", DATABASE_FOLDER + getMyDatabaseName());
-       // intent.putExtra("db", "file://" + "//storage//emulated//0//GBWhatsApp//Backup//databases//wa.db");
+        //intent.putExtra("Database", "//storage//emulated//0//GBWhatsApp//Backup//databases//wa.db");
         startActivityForResult(intent, 1);
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -117,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Log.d("onActivityResult: ", filepath);
                     readFile(filepath); // here we try to read filepath
-                                        // this method is below
-                                        // private void readFile(
+                    // this method is below
+                    // private void readFile(
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InvalidFormatException e) {
@@ -133,9 +157,9 @@ public class MainActivity extends AppCompatActivity {
     private String getFileUri(Intent data) {
         String filePath = null;
         Uri _uri = data.getData();
-        Log.d("","URI = "+ _uri);
+        Log.d("", "URI = " + _uri);
         if (_uri != null && "content".equals(_uri.getScheme())) {
-            Cursor cursor = this.getContentResolver().query(_uri, new String[] { android.provider.MediaStore.Images.ImageColumns.DATA }, null, null, null);
+            Cursor cursor = this.getContentResolver().query(_uri, new String[]{android.provider.MediaStore.Images.ImageColumns.DATA}, null, null, null);
             cursor.moveToFirst();
             filePath = cursor.getString(0);
             cursor.close();
@@ -143,8 +167,41 @@ public class MainActivity extends AppCompatActivity {
             filePath = _uri.getPath();
         }
         return filePath;
-       // Log.d("","Chosen path = "+ filePath);
+        // Log.d("","Chosen path = "+ filePath);
     }
+
+    private void requestPermissionForSQLFile() {
+        Dexter.withActivity(this) // dexter has to do with permission
+                .withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if (report.areAllPermissionsGranted()) {
+
+                            new ChooserDialog().with(MainActivity.this)
+                                    .withFilter(false, false, "txt")
+                                    .withStartFile(FilePath)
+                                    .withChosenListener(new ChooserDialog.Result() {
+                                        @Override
+                                        public void onChoosePath(String path, File pathFile) {
+                                            copySQLQueryFile(pathFile);
+                                        }
+                                    })
+                                    .build()
+                                    .show();
+
+                        } else if (report.isAnyPermissionPermanentlyDenied()) {
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
+
     private void requestPermission() {
         Dexter.withActivity(this) // dexter has to do with permission
                 .withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -188,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-// /storage/emulated/0/Notification History Log/excel/
+                    // /storage/emulated/0/Notification History Log/excel/
 // /storage/emulated/0/NotificationHistory/0/6/log/excel/
 // /storage/emulated/0/NotificationHistory/0/log/excel/
                     @Override
