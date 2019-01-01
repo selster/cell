@@ -5,7 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.os.StrictMode;
+import android.provider.ContactsContract;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,7 +46,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     // defining variables
     private static final int PICKFILE_REQUEST_CODE = 1; //
-    private Button pickFile; // here is the famous button
+    private Button pickFile, openDb; // here is the famous button
     private ArrayList<String> columnNames = new ArrayList<>();
     private ArrayList<String> values = new ArrayList<>();
     Context context;
@@ -50,12 +54,15 @@ public class MainActivity extends AppCompatActivity {
     private int counter = 0;
     public static String PACKAGE_NAME;
     //Path that will open the file picker from. If it doesnt exist, it will crash
-    private String excelFolderPath = "/storage/emulated/0/notif/excel";
-
+    //private String excelFolderPath = "/storage/emulated/0/notif/excel";
+    private String excelFolderPath = "//storage//emulated//0//Notification History";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //This will work only if developers mode is on
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
         PACKAGE_NAME = getApplicationContext().getPackageName();
         initwidgets();
 
@@ -64,7 +71,26 @@ public class MainActivity extends AppCompatActivity {
     private void initwidgets() {
         context = this;
         pickFile = (Button) findViewById(R.id.pickFile_Button);
+        openDb = (Button) findViewById(R.id.openDatabase_Button);
 
+        openDb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(DatabaseHandler.getInstance(context).getDatabasePath());
+                if (file.exists()) {
+                    Intent newIntent = new Intent(Intent.ACTION_VIEW);
+                        newIntent.setDataAndType(Uri.fromFile(file), "application/x-sqlite3");
+                    newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    newIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                    startActivity(newIntent);
+                    Toast.makeText(MainActivity.this, DatabaseHandler.getInstance(context).getDatabasePath(), Toast.LENGTH_LONG).show();
+                } else {
+                 Toast.makeText(MainActivity.this, "Database Does not Exist", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         pickFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onChoosePath(String path, File pathFile) {
                                             try {
+                                                DatabaseHandler.getInstance(context).createNewDatabase();
                                                 readFile(pathFile.getPath());
                                             } catch (IOException e) {
                                                 e.printStackTrace();

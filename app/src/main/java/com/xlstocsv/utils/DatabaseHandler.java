@@ -35,6 +35,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_NAME = "name";
     private static final String KEY_PH_NO = "phone_number";
     public static DatabaseHandler handler = null;
+    private static String databaseName = "";
 
     private String databasePath = "";
     //    private static final String DATABASE_PATH = Environment.getExternalStorageDirectory().getPath()
@@ -59,6 +60,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.d("Test", my_db);
     }
 
+
     private static String getMyDatabaseName() {
         Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
@@ -67,7 +69,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         String time = simpleDateFormat.format(calendar.getTime());
-
+        time = time.replaceAll(":","_");
         String date_time = year + "_" + month + "_" + day + "_" + time;
         String my_db_table = "table" + "_" + date_time + ".db";
         my_db = my_db_table;
@@ -123,6 +125,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //        return builder.toString();
     }
 
+    public String getDatabasePath() {
+        return this.getWritableDatabase().getPath();
+    }
     public void addContact(ArrayList<String> columns, ArrayList<String> list) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("delete from " + TABLE_CONTACTS);
@@ -189,5 +194,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } catch (Exception e) {
 
         }
+    }
+
+    public void createNewDatabase() {
+        handler = null;
     }
 }
